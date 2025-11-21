@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="OpenFIDO-ESP - Token de segurança U2F/FIDO2 open-source baseado em ESP32">
+    <meta name="keywords" content="U2F, FIDO2, ESP32, security token, open source, hardware security">
+    <meta name="author" content="OpenFIDO-ESP Team">
+    <title>OpenFIDO-ESP - Open Source Security Token</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                    <path d="M2 17l10 5 10-5"/>
+                    <path d="M2 12l10 5 10-5"/>
+                </svg>
+                <span class="brand-name">OpenFIDO-ESP</span>
+            </div>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#docs">Docs</a>
+                <a href="#download">Download</a>
+                <a href="https://github.com/yourusername/OpenFIDO-ESP" target="_blank" class="btn-github">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                    GitHub
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-background">
+            <div class="gradient-orb orb-1"></div>
+            <div class="gradient-orb orb-2"></div>
+            <div class="gradient-orb orb-3"></div>
+        </div>
+        <div class="container hero-content">
+            <div class="hero-badge">
+                <span class="badge-dot"></span>
+                100% Open Source
+            </div>
+            <h1 class="hero-title">
+                Segurança de Hardware
+                <span class="gradient-text">Acessível</span>
+            </h1>
+            <p class="hero-subtitle">
+                Token de autenticação U2F/FIDO2 baseado em ESP32-S3.<br>
+                Open-source, de baixo custo e totalmente personalizável.
+            </p>
+            <div class="hero-cta">
+                <a href="#download" class="btn btn-primary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Download Firmware
+                </a>
+                <a href="https://github.com/yourusername/OpenFIDO-ESP" target="_blank" class="btn btn-secondary">
+                    Ver no GitHub
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                        <polyline points="15 3 21 3 21 9"/>
+                        <line x1="10" y1="14" x2="21" y2="3"/>
+                    </svg>
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <div class="stat-value">ESP32-S3</div>
+                    <div class="stat-label">Microcontrolador</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">U2F + FIDO2</div>
+                    <div class="stat-label">Protocolos</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">&lt; $10</div>
+                    <div class="stat-label">Custo Total</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Por que OpenFIDO-ESP?</h2>
+                <p class="section-subtitle">Segurança de nível profissional sem o preço premium</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                    </div>
+                    <h3>Segurança Robusta</h3>
+                    <p>Criptografia ECC P-256, geração de chaves segura com hardware RNG, e proteção contra ataques físicos.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="16 18 22 12 16 6"/>
+                            <polyline points="8 6 2 12 8 18"/>
+                        </svg>
+                    </div>
+                    <h3>100% Open Source</h3>
+                    <p>Código-fonte completo disponível. Sem backdoors, sem mistérios. Auditável e modificável.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="2" y1="12" x2="22" y2="12"/>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                        </svg>
+                    </div>
+                    <h3>Compatível</h3>
+                    <p>Funciona com Chrome, Firefox, Edge e qualquer serviço que suporte U2F/FIDO2.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                    </div>
+                    <h3>Baixo Custo</h3>
+                    <p>Componentes acessíveis, menos de $10 em materiais. Alternativa viável aos tokens comerciais.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                            <polyline points="2 17 12 22 22 17"/>
+                            <polyline points="2 12 12 17 22 12"/>
+                        </svg>
+                    </div>
+                    <h3>Modular</h3>
+                    <p>Arquitetura extensível. Adicione OATH, PIV, OpenPGP e outros protocolos facilmente.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                        </svg>
+                    </div>
+                    <h3>Fácil de Construir</h3>
+                    <p>Documentação completa, esquemáticos, PCB e guias passo-a-passo para montagem.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack Section -->
+    <section class="tech-stack">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Tecnologias</h2>
+                <p class="section-subtitle">Stack moderno e confiável</p>
+            </div>
+            <div class="tech-grid">
+                <div class="tech-item">
+                    <div class="tech-name">ESP32-S3</div>
+                    <div class="tech-desc">Dual-core, USB OTG, Hardware RNG</div>
+                </div>
+                <div class="tech-item">
+                    <div class="tech-name">ESP-IDF</div>
+                    <div class="tech-desc">Framework oficial Espressif</div>
+                </div>
+                <div class="tech-item">
+                    <div class="tech-name">mbedTLS</div>
+                    <div class="tech-desc">Criptografia ECC P-256</div>
+                </div>
+                <div class="tech-item">
+                    <div class="tech-name">TinyUSB</div>
+                    <div class="tech-desc">Stack USB HID</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Documentation Section -->
+    <section id="docs" class="documentation">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Documentação</h2>
+                <p class="section-subtitle">Tudo que você precisa para começar</p>
+            </div>
+            <div class="docs-grid">
+                <a href="https://github.com/yourusername/OpenFIDO-ESP#quick-start" class="doc-card">
+                    <div class="doc-icon">🚀</div>
+                    <h3>Quick Start</h3>
+                    <p>Configure e use seu token em minutos</p>
+                </a>
+                <a href="https://github.com/yourusername/OpenFIDO-ESP/blob/main/hardware/README.md" class="doc-card">
+                    <div class="doc-icon">🔧</div>
+                    <h3>Hardware</h3>
+                    <p>Esquemáticos, PCB e lista de materiais</p>
+                </a>
+                <a href="https://github.com/yourusername/OpenFIDO-ESP/blob/main/firmware/README.md" class="doc-card">
+                    <div class="doc-icon">💻</div>
+                    <h3>Firmware</h3>
+                    <p>Compilação, flash e desenvolvimento</p>
+                </a>
+                <a href="https://github.com/yourusername/OpenFIDO-ESP/blob/main/architecture.md" class="doc-card">
+                    <div class="doc-icon">📐</div>
+                    <h3>Arquitetura</h3>
+                    <p>Design interno e decisões técnicas</p>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section id="download" class="download">
+        <div class="container">
+            <div class="download-content">
+                <h2>Pronto para começar?</h2>
+                <p>Baixe o firmware mais recente ou clone o repositório</p>
+                <div class="download-buttons">
+                    <a href="https://github.com/yourusername/OpenFIDO-ESP/releases/latest" class="btn btn-primary btn-large">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Download Latest Release
+                    </a>
+                    <div class="git-clone">
+                        <code>git clone https://github.com/yourusername/OpenFIDO-ESP.git</code>
+                        <button class="copy-btn" onclick="copyToClipboard()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
+                    </svg>
+                    <span>OpenFIDO-ESP</span>
+                </div>
+                <div class="footer-links">
+                    <a href="https://github.com/yourusername/OpenFIDO-ESP">GitHub</a>
+                    <a href="https://github.com/yourusername/OpenFIDO-ESP/issues">Issues</a>
+                    <a href="https://github.com/yourusername/OpenFIDO-ESP/blob/main/LICENSE">License</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2025 OpenFIDO-ESP. Licensed under MIT License.</p>
+                <p>Built with ❤️ for the open-source community</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Copy to clipboard
+        function copyToClipboard() {
+            const code = document.querySelector('.git-clone code').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>';
+                setTimeout(() => {
+                    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+                }, 2000);
+            });
+        }
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.style.background = 'rgba(10, 10, 15, 0.95)';
+                navbar.style.backdropFilter = 'blur(20px)';
+            } else {
+                navbar.style.background = 'rgba(10, 10, 15, 0.8)';
+                navbar.style.backdropFilter = 'blur(10px)';
+            }
+        });
+    </script>
+</body>
+</html>
