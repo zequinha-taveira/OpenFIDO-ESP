@@ -1,0 +1,40 @@
+# ESP-IDF Build Artifacts
+firmware/build/
+firmware/sdkconfig
+firmware/sdkconfig.old
+firmware/sdkconfig.defaults.old
+
+# ESP-IDF Dependencies
+firmware/dependencies/
+firmware/managed_components/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Test Results
+tests/__pycache__/
+tests/*.pyc
+*.log
+
+# Temporary Files
+*.tmp
+*.bak
+*.backup

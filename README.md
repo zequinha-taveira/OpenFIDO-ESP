@@ -4,6 +4,7 @@
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Status](https://img.shields.io/badge/status-Prototype-orange.svg)
+![Build](https://github.com/YOUR_USERNAME/OpenFIDO-ESP/workflows/ESP-IDF%20Build/badge.svg)
 
 ## 🚀 Features
 
