@@ -118,7 +118,6 @@ jobs:
           echo "✅ Code formatting check passed!"
       
       - name: Static code analysis with cppcheck
-        continue-on-error: true
         run: |
           echo "🔍 Running static code analysis..."
           cppcheck \
@@ -127,10 +126,7 @@ jobs:
             --suppress=unmatchedSuppression \
             --inline-suppr \
             --quiet \
-            firmware/main/ || {
-            echo "⚠️ Static analysis found issues (non-blocking)"
-            echo "Please review and fix when possible"
-          }
+            firmware/main/ && echo "✅ No issues found!" || echo "⚠️ Style warnings found (non-blocking)"
           echo "✅ Static analysis completed!"
       
       - name: Check for common issues
