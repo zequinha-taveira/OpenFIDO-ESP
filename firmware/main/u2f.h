@@ -22,3 +22,7 @@
 // Public API
 void u2f_init(void);
 void u2f_handle_report(uint8_t *report, uint16_t len);
+void u2f_send_response(uint32_t cid, uint8_t cmd, uint8_t *data, uint16_t len);
+int u2f_create_key_handle(const uint8_t *application_parameter, const uint8_t *private_key, uint8_t *key_handle);
+int u2f_unwrap_key_handle(const uint8_t *application_parameter, const uint8_t *key_handle, uint8_t kh_len, uint8_t *private_key);
+int u2f_sign_attestation(const uint8_t *hash, uint8_t *signature);

@@ -37,3 +37,7 @@ typedef struct {
 void cbor_decoder_init(cbor_decoder_t *dec, const uint8_t *buf, size_t size);
 bool cbor_decode_uint(cbor_decoder_t *dec, uint64_t *val);
 bool cbor_decode_bytes(cbor_decoder_t *dec, const uint8_t **data, size_t *len);
+bool cbor_decode_text(cbor_decoder_t *dec, const char **text, size_t *len);
+bool cbor_decode_map_header(cbor_decoder_t *dec, size_t *size);
+bool cbor_decode_array_header(cbor_decoder_t *dec, size_t *size);
+int cbor_peek_major_type(cbor_decoder_t *dec);

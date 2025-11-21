@@ -4,6 +4,7 @@
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/ecdsa.h"
 #include "mbedtls/sha256.h"
+#include "mbedtls/gcm.h"
 
 static const char *TAG = "CRYPTO_HAL";
 
@@ -121,4 +122,56 @@ exit:
         return ret;
     }
     return sig_len; // Return actual signature length
+}
+
+// AES-256-GCM Encrypt
+int hal_aes_gcm_encrypt(const uint8_t *key, const uint8_t *iv, size_t iv_len,
+                        const uint8_t *aad, size_t aad_len,
+                        const uint8_t *input, size_t length,
+                        uint8_t *output, uint8_t *tag, size_t tag_len) {
+    mbedtls_gcm_context ctx;
+    int ret;
+
+    mbedtls_gcm_init(&ctx);
+    
+    // 256-bit key = 32 bytes * 8 = 256 bits
+    ret = mbedtls_gcm_setkey(&ctx, MBEDTLS_CIPHER_ID_AES, key, 256);
+    if (ret != 0) goto exit;
+
+    ret = mbedtls_gcm_crypt_and_tag(&ctx, MBEDTLS_GCM_ENCRYPT, length,
+                                    iv, iv_len, aad, aad_len,
+                                    input, output, tag_len, tag);
+
+exit:
+    mbedtls_gcm_free(&ctx);
+    if (ret != 0) {
+        ESP_LOGE(TAG, "AES GCM Encrypt Failed: -0x%04X", -ret);
+    }
+    return ret;
+}
+
+// AES-256-GCM Decrypt
+int hal_aes_gcm_decrypt(const uint8_t *key, const uint8_t *iv, size_t iv_len,
+                        const uint8_t *aad, size_t aad_len,
+                        const uint8_t *input, size_t length,
+                        uint8_t *output, const uint8_t *tag, size_t tag_len) {
+    mbedtls_gcm_context ctx;
+    int ret;
+
+    mbedtls_gcm_init(&ctx);
+
+    ret = mbedtls_gcm_setkey(&ctx, MBEDTLS_CIPHER_ID_AES, key, 256);
+    if (ret != 0) goto exit;
+
+    ret = mbedtls_gcm_auth_decrypt(&ctx, length,
+                                   iv, iv_len, aad, aad_len,
+                                   tag, tag_len,
+                                   input, output);
+
+exit:
+    mbedtls_gcm_free(&ctx);
+    if (ret != 0) {
+        ESP_LOGE(TAG, "AES GCM Decrypt Failed: -0x%04X", -ret);
+    }
+    return ret;
 }

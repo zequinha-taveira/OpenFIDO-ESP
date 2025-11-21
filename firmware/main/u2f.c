@@ -3,6 +3,7 @@
 #include "tusb.h"
 #include "u2f.h"
 #include "crypto_hal.h"
+#include "nvs.h"
 
 static const char *TAG = "U2F";
 
@@ -29,8 +30,61 @@ static uint8_t apdu_buffer[1024];
 static uint16_t apdu_len = 0;
 static uint16_t apdu_idx = 0;
 
+static uint32_t global_counter = 0;
+static uint8_t device_master_key[32];
+
+static void load_device_key() {
+    nvs_handle_t my_handle;
+    esp_err_t err = nvs_open("storage", NVS_READWRITE, &my_handle);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Error opening NVS for key!");
+        return;
+    }
+    
+    size_t len = 32;
+    err = nvs_get_blob(my_handle, "master_key", device_master_key, &len);
+    if (err == ESP_ERR_NVS_NOT_FOUND) {
+        ESP_LOGI(TAG, "Generating new Master Key...");
+        hal_rng_generate(device_master_key, 32);
+        nvs_set_blob(my_handle, "master_key", device_master_key, 32);
+        nvs_commit(my_handle);
+    }
+    nvs_close(my_handle);
+}
+
+static void load_counter() {
+    nvs_handle_t my_handle;
+    esp_err_t err = nvs_open("storage", NVS_READWRITE, &my_handle);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Error (%s) opening NVS handle!", esp_err_to_name(err));
+        return;
+    }
+    
+    err = nvs_get_u32(my_handle, "counter", &global_counter);
+    if (err == ESP_ERR_NVS_NOT_FOUND) {
+        global_counter = 1;
+        nvs_set_u32(my_handle, "counter", global_counter);
+        nvs_commit(my_handle);
+    }
+    nvs_close(my_handle);
+    ESP_LOGI(TAG, "Counter loaded: %lu", global_counter);
+}
+
+static void increment_counter() {
+    global_counter++;
+    nvs_handle_t my_handle;
+    esp_err_t err = nvs_open("storage", NVS_READWRITE, &my_handle);
+    if (err == ESP_OK) {
+        nvs_set_u32(my_handle, "counter", global_counter);
+        nvs_commit(my_handle);
+        nvs_close(my_handle);
+    }
+}
+
 void u2f_init(void) {
     ESP_LOGI(TAG, "U2F Stack Initialized");
+    load_counter();
+    load_device_key();
 }
 
 void u2f_send_response(uint32_t cid, uint8_t cmd, uint8_t *data, uint16_t len) {
@@ -57,6 +111,48 @@ static const uint8_t attestation_private_key[32] = {
     0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88,
     0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88
 };
+
+int u2f_create_key_handle(const uint8_t *application_parameter, const uint8_t *private_key, uint8_t *key_handle) {
+    // Key Handle: [IV(12) | EncryptedKey(32) | Tag(16)] = 60 bytes
+    uint8_t kh_iv[12];
+    hal_rng_generate(kh_iv, 12);
+    
+    uint8_t kh_ciphertext[32];
+    uint8_t kh_tag[16];
+    
+    // Encrypt Private Key with Master Key
+    // AAD = AppParam (Bind key to Application)
+    int ret = hal_aes_gcm_encrypt(device_master_key, kh_iv, 12,
+                        application_parameter, 32,
+                        private_key, 32,
+                        kh_ciphertext, kh_tag, 16);
+    
+    if (ret != 0) return 0;
+
+    memcpy(key_handle, kh_iv, 12);
+    memcpy(key_handle + 12, kh_ciphertext, 32);
+    memcpy(key_handle + 44, kh_tag, 16);
+    
+    return 60;
+}
+
+int u2f_sign_attestation(const uint8_t *hash, uint8_t *signature) {
+    return hal_ecc_sign(attestation_private_key, hash, signature);
+}
+
+int u2f_unwrap_key_handle(const uint8_t *application_parameter, const uint8_t *key_handle, uint8_t kh_len, uint8_t *private_key) {
+    if (kh_len != 60) return -1;
+    
+    // KH = [IV(12) | Cipher(32) | Tag(16)]
+    const uint8_t *kh_iv_ptr = key_handle;
+    const uint8_t *kh_cipher_ptr = key_handle + 12;
+    const uint8_t *kh_tag_ptr = key_handle + 12 + 32;
+    
+    return hal_aes_gcm_decrypt(device_master_key, kh_iv_ptr, 12,
+                                      application_parameter, 32,
+                                      kh_cipher_ptr, 32,
+                                      private_key, kh_tag_ptr, 16);
+}
 
 static void process_apdu(uint32_t cid, uint8_t *apdu, uint16_t len) {
     if (len < 4) return;
@@ -111,11 +207,10 @@ static void process_apdu(uint32_t cid, uint8_t *apdu, uint16_t len) {
             memcpy(&resp_buf[1], pub_key, 65);
             resp_len = 1 + 65;
             
-            // Key Handle (For now: Raw Private Key - INSECURE for prod, ok for demo)
-            uint8_t kh_len = 32;
+            // Key Handle: [IV(12) | EncryptedKey(32) | Tag(16)] = 60 bytes
+            uint8_t kh_len = u2f_create_key_handle(app_param, priv_key, &resp_buf[resp_len + 1]);
             resp_buf[resp_len++] = kh_len;
-            memcpy(&resp_buf[resp_len], priv_key, 32);
-            resp_len += 32;
+            resp_len += kh_len;
             
             // Attestation Cert (Self-signed or minimal)
             // Mocking a minimal DER cert structure would be complex here.
@@ -127,15 +222,17 @@ static void process_apdu(uint32_t cid, uint8_t *apdu, uint16_t len) {
             // U2F Spec: Sign(0x00 || AppParam || Challenge || KeyHandle || PubKey)
             
             // Signature
-            uint8_t sig_input[1 + 32 + 32 + 32 + 65];
+            // Sig Input: 0x00 || AppParam || Challenge || KeyHandle || PubKey
+            // Size: 1 + 32 + 32 + 60 + 65 = 190
+            uint8_t sig_input[200];
             sig_input[0] = 0x00;
             memcpy(&sig_input[1], app_param, 32);
             memcpy(&sig_input[33], challenge, 32);
-            memcpy(&sig_input[65], priv_key, 32); // Key Handle
-            memcpy(&sig_input[97], pub_key, 65);
+            memcpy(&sig_input[65], &resp_buf[resp_len - kh_len], kh_len); // Key Handle from buffer
+            memcpy(&sig_input[65 + kh_len], pub_key, 65);
             
             uint8_t sig_hash[32];
-            hal_sha256(sig_input, sizeof(sig_input), sig_hash);
+            hal_sha256(sig_input, 1 + 32 + 32 + kh_len + 65, sig_hash);
             
             uint8_t signature[72];
             int sig_size = hal_ecc_sign(attestation_private_key, sig_hash, signature);
@@ -169,7 +266,7 @@ static void process_apdu(uint32_t cid, uint8_t *apdu, uint16_t len) {
             uint8_t auth_kh_len = data[64];
             uint8_t *auth_kh = data + 65;
             
-            if (auth_kh_len != 32) {
+            if (auth_kh_len != 60) {
                 resp_buf[0] = 0x6A; // Wrong Data (Bad Key Handle)
                 resp_buf[1] = 0x80;
                 resp_len = 2;
@@ -188,7 +285,8 @@ static void process_apdu(uint32_t cid, uint8_t *apdu, uint16_t len) {
             // In real code: wait for button press or return "Not Satisfied" immediately if not pressed.
             // For demo: assume pressed.
             uint8_t user_presence = 0x01;
-            uint32_t counter = 1; // TODO: Persist counter
+            increment_counter();
+            uint32_t counter = global_counter;
             
             // Sign(AppParam || UserPresence || Counter || Challenge)
             uint8_t auth_sig_input[32 + 1 + 4 + 32];
@@ -205,7 +303,15 @@ static void process_apdu(uint32_t cid, uint8_t *apdu, uint16_t len) {
             
             // Recover Private Key from Key Handle
             uint8_t recovered_priv_key[32];
-            memcpy(recovered_priv_key, auth_kh, 32);
+            int dec_ret = u2f_unwrap_key_handle(auth_app_param, auth_kh, auth_kh_len, recovered_priv_key);
+            
+            if (dec_ret != 0) {
+                ESP_LOGE(TAG, "Bad Key Handle (Decrypt Failed)");
+                resp_buf[0] = 0x6A; // Wrong Data
+                resp_buf[1] = 0x80;
+                resp_len = 2;
+                break;
+            }
             
             uint8_t auth_signature[72];
             int auth_sig_size = hal_ecc_sign(recovered_priv_key, auth_hash, auth_signature);

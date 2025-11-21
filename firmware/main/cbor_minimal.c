@@ -133,3 +133,69 @@ bool cbor_decode_bytes(cbor_decoder_t *dec, const uint8_t **data, size_t *len) {
     dec->offset += l;
     return true;
 }
+
+bool cbor_decode_text(cbor_decoder_t *dec, const char **text, size_t *len) {
+    uint8_t head = read_byte(dec);
+    uint8_t major = head & 0xE0;
+    uint8_t info = head & 0x1F;
+    
+    if (major != CBOR_TEXT) return false;
+    
+    size_t l = 0;
+    if (info < 24) {
+        l = info;
+    } else if (info == 24) {
+        l = read_byte(dec);
+    } else if (info == 25) {
+        l = ((size_t)read_byte(dec) << 8) | read_byte(dec);
+    }
+    
+    if (dec->offset + l > dec->size) return false;
+    
+    *text = (const char *)(dec->buf + dec->offset);
+    *len = l;
+    dec->offset += l;
+    return true;
+}
+
+bool cbor_decode_map_header(cbor_decoder_t *dec, size_t *size) {
+    uint8_t head = peek(dec);
+    uint8_t major = head & 0xE0;
+    uint8_t info = head & 0x1F;
+    
+    if (major != CBOR_MAP) return false;
+    read_byte(dec); // Consume head
+    
+    if (info < 24) {
+        *size = info;
+    } else if (info == 24) {
+        *size = read_byte(dec);
+    } else {
+        return false; // Simplified
+    }
+    return true;
+}
+
+bool cbor_decode_array_header(cbor_decoder_t *dec, size_t *size) {
+    uint8_t head = peek(dec);
+    uint8_t major = head & 0xE0;
+    uint8_t info = head & 0x1F;
+    
+    if (major != CBOR_ARRAY) return false;
+    read_byte(dec); // Consume head
+    
+    if (info < 24) {
+        *size = info;
+    } else if (info == 24) {
+        *size = read_byte(dec);
+    } else {
+        return false; // Simplified
+    }
+    return true;
+}
+
+int cbor_peek_major_type(cbor_decoder_t *dec) {
+    uint8_t head = peek(dec);
+    if (head == 0xFF) return -1;
+    return head & 0xE0;
+}
