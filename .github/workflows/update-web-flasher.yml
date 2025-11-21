@@ -1,0 +1,69 @@
+name: Update Web Flasher
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "firmware/**"
+      - "site/**"
+      - ".github/workflows/update-web-flasher.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    name: Build Firmware & Deploy Site
+    runs-on: ubuntu-latest
+    container: espressif/idf:latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Cache ESP-IDF components
+        uses: actions/cache@v4
+        with:
+          path: |
+            firmware/build
+            ~/.espressif
+          key: ${{ runner.os }}-esp-idf-${{ hashFiles('firmware/sdkconfig*') }}
+          restore-keys: |
+            ${{ runner.os }}-esp-idf-
+
+      - name: Build Firmware
+        working-directory: firmware
+        run: |
+          . $IDF_PATH/export.sh
+          idf.py build
+
+      - name: Prepare Site Artifacts
+        run: |
+          # Copy firmware binaries to site directory
+          cp firmware/build/bootloader/bootloader.bin site/
+          cp firmware/build/partition_table/partition-table.bin site/
+          cp firmware/build/openfido-esp.bin site/
+          
+          # Verify files exist
+          ls -l site/*.bin
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'site'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
