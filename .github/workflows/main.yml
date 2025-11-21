@@ -1,1 +1,100 @@
+name: CI/CD Pipeline
 
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Firmware
+    runs-on: ubuntu-latest
+    container: espressif/idf:latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      
+      - name: Cache ESP-IDF components
+        uses: actions/cache@v4
+        with:
+          path: |
+            firmware/build
+            ~/.espressif
+          key: ${{ runner.os }}-esp-idf-${{ hashFiles('firmware/sdkconfig*') }}
+          restore-keys: |
+            ${{ runner.os }}-esp-idf-
+      
+      - name: Build firmware
+        working-directory: firmware
+        run: |
+          . $IDF_PATH/export.sh
+          idf.py build
+      
+      - name: Display build size
+        working-directory: firmware
+        run: |
+          . $IDF_PATH/export.sh
+          idf.py size
+      
+      - name: Upload firmware artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: openfido-esp-firmware-dev
+          path: |
+            firmware/build/*.bin
+            firmware/build/*.elf
+            firmware/build/bootloader/bootloader.bin
+            firmware/build/partition_table/partition-table.bin
+          retention-days: 7
+      
+      - name: Display build logs on failure
+        if: failure()
+        working-directory: firmware
+        run: |
+          echo "=== Build failed. Displaying build log ==="
+          cat build/build.log || echo "No build log found"
+  
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      
+      - name: Install test dependencies
+        run: |
+          pip install pytest
+      
+      - name: Run unit tests
+        working-directory: tests
+        run: |
+          if [ -f "test_u2f.py" ]; then
+            python -m pytest -v
+          else
+            echo "No test files found, skipping tests"
+          fi
+  
+  lint:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Check code formatting
+        run: |
+          echo "Code quality checks would run here"
+          echo "Consider adding: clang-format, cppcheck, etc."
