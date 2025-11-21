@@ -31,18 +31,12 @@ jobs:
       
       - name: Build firmware
         working-directory: firmware
-        continue-on-error: true
         run: |
           . $IDF_PATH/export.sh
-          idf.py build || {
-            echo "⚠️ Build failed - this is expected if dependencies are not fully configured"
-            echo "Please ensure all ESP-IDF components are properly set up"
-            exit 0
-          }
+          idf.py build
       
       - name: Display build size
         if: success()
-        continue-on-error: true
         working-directory: firmware
         run: |
           . $IDF_PATH/export.sh
