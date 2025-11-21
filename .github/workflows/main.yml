@@ -118,6 +118,7 @@ jobs:
           echo "✅ Code formatting check passed!"
       
       - name: Static code analysis with cppcheck
+        continue-on-error: true
         run: |
           echo "🔍 Running static code analysis..."
           cppcheck \
@@ -125,7 +126,7 @@ jobs:
             --suppress=missingIncludeSystem \
             --suppress=unmatchedSuppression \
             --inline-suppr \
-            firmware/main/ 2>&1 || true
+            firmware/main/ 2>&1
           echo "✅ Static analysis completed (warnings are informational only)"
       
       - name: Check for common issues
