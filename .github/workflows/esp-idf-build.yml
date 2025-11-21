@@ -50,6 +50,27 @@ jobs:
           # Build with optimizations
           idf.py -DCMAKE_BUILD_TYPE=Release build
 
+      - name: Generate Changelog
+        id: changelog
+        run: |
+          # Install git-cliff
+          wget -q https://github.com/orhun/git-cliff/releases/download/v1.4.0/git-cliff-1.4.0-x86_64-unknown-linux-gnu.tar.gz
+          tar -xzf git-cliff-1.4.0-x86_64-unknown-linux-gnu.tar.gz
+          chmod +x git-cliff-1.4.0/git-cliff
+          
+          # Generate changelog
+          ./git-cliff-1.4.0/git-cliff --tag ${{ steps.version.outputs.VERSION }} --unreleased > CHANGELOG.md || {
+            echo "No conventional commits found, creating basic changelog"
+            echo "# Changelog for ${{ steps.version.outputs.VERSION }}" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 2>/dev/null || echo "")..HEAD >> CHANGELOG.md || echo "- Initial release" >> CHANGELOG.md
+          }
+          
+          # Save changelog for later use
+          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+          cat CHANGELOG.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Generate Build Info
         working-directory: firmware/build
         run: |
@@ -61,6 +82,9 @@ jobs:
           echo "=== Build Size ===" >> BUILD_INFO.txt
           . $IDF_PATH/export.sh
           idf.py size >> BUILD_INFO.txt
+          echo "" >> BUILD_INFO.txt
+          echo "=== Changelog ===" >> BUILD_INFO.txt
+          cat ../CHANGELOG.md >> BUILD_INFO.txt 2>/dev/null || echo "No changelog available" >> BUILD_INFO.txt
 
       - name: Create Release Package
         working-directory: firmware/build
@@ -127,9 +151,42 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Send Discord Notification (Success)
+        if: success() && startsWith(github.ref, 'refs/tags/')
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          VERSION: ${{ steps.version.outputs.VERSION }}
+          CHANGELOG: ${{ steps.changelog.outputs.CHANGELOG }}
+          DOWNLOAD_URL: ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ steps.version.outputs.VERSION }}
+          COMMIT_SHA: ${{ github.sha }}
+          NOTIFICATION_TYPE: release
+        run: |
+          if [ -n "$DISCORD_WEBHOOK_URL" ]; then
+            pip install requests
+            python .github/workflows/scripts/notify.py
+          else
+            echo "⚠️ DISCORD_WEBHOOK_URL not configured, skipping notification"
+          fi
+
       - name: Display Build Logs on Failure
         if: failure()
         working-directory: firmware
         run: |
           echo "=== Production build failed. Displaying build log ==="
-          cat build/build.log || echo "No build log found"
+          cat build/build.log || echo "No build log found" > /tmp/error.log
+          
+      - name: Send Discord Notification (Failure)
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          VERSION: ${{ steps.version.outputs.VERSION }}
+          ERROR_LOG: ${{ steps.build_error.outputs.ERROR_LOG }}
+          NOTIFICATION_TYPE: failure
+        run: |
+          if [ -n "$DISCORD_WEBHOOK_URL" ]; then
+            pip install requests
+            export ERROR_LOG=$(cat /tmp/error.log 2>/dev/null || echo "No error log available")
+            python .github/workflows/scripts/notify.py
+          else
+            echo "⚠️ DISCORD_WEBHOOK_URL not configured, skipping notification"
+          fi
