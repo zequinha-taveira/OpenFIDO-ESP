@@ -125,9 +125,8 @@ jobs:
             --suppress=missingIncludeSystem \
             --suppress=unmatchedSuppression \
             --inline-suppr \
-            --quiet \
-            firmware/main/ && echo "✅ No issues found!" || echo "⚠️ Style warnings found (non-blocking)"
-          echo "✅ Static analysis completed!"
+            firmware/main/ 2>&1 || true
+          echo "✅ Static analysis completed (warnings are informational only)"
       
       - name: Check for common issues
         run: |
