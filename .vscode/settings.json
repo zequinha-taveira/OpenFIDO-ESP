@@ -1,3 +1,6 @@
 {
-    "cmake.sourceDirectory": "D:/Zequinha Taveira/OneDrive/Área de Trabalho/Projeto/OpenFIDO-ESP/firmware"
+    "cmake.sourceDirectory": "D:/Zequinha Taveira/OneDrive/Área de Trabalho/Projeto/OpenFIDO-ESP/firmware",
+    "github-actions.workflows.pinned.workflows": [
+        ".github/workflows/cmake-single-platform.yml"
+    ]
 }
