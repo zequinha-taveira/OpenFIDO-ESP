@@ -1,0 +1,12 @@
+Designator,Component,Value,Package,Quantity,Description,LCSC Part # (Sugestão)
+U1,ESP32-S2-MINI-1,ESP32-S2 Module,Module,1,Microcontrolador Wi-Fi,C968937
+U2,XC6206P332MR,3.3V LDO,SOT-23,1,Regulador de Tensão LDO,C5446
+U3,USBLC6-2SC6,USBLC6-2,SOT-23-6,1,Proteção ESD USB,C7519
+D1,WS2812B-2020,RGB LED,2020 (Metric),1,LED Endereçável Inteligente,C114586
+SW1,Tact Switch,SPST-NO,3x4mm SMD,1,Botão de Usuário,C318884
+C1,C2,Capacitor,10uF,0603,2,X5R/X7R 10V,C19702
+C3,C4,Capacitor,100nF,0402,2,X7R 16V (Decoupling),C1525
+R1,Resistor,10k,0402,1,Pull-up para IO0 / EN,C25744
+R2,R3,Resistor,5.1k,0402,2,Pull-down CC1/CC2 (Apenas USB-C),C25900
+J1,USB Connector,Type-A or Type-C,SMD,1,Conector USB,C134882 (Type-C 16pin)
+PCB,PCB,FR-4 1.6mm,Custom,1,Placa de Circuito Impresso,-
