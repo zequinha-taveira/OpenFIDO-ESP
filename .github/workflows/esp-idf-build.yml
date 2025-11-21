@@ -10,13 +10,49 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container: espressif/idf:latest
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
+      - name: Cache ESP-IDF components
+        uses: actions/cache@v3
+        with:
+          path: |
+            firmware/build
+            ~/.espressif
+          key: ${{ runner.os }}-esp-idf-${{ hashFiles('firmware/sdkconfig*') }}
+          restore-keys: |
+            ${{ runner.os }}-esp-idf-
+
       - name: Build Firmware
         working-directory: firmware
         run: |
           idf.py build
+
+      - name: Show Build Size
+        if: success()
+        working-directory: firmware
+        run: |
+          idf.py size
+
+      - name: Upload Firmware Artifacts
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: firmware-binaries
+          path: |
+            firmware/build/*.bin
+            firmware/build/*.elf
+            firmware/build/bootloader/bootloader.bin
+            firmware/build/partition_table/partition-table.bin
+          retention-days: 30
+
+      - name: Display Build Logs on Failure
+        if: failure()
+        working-directory: firmware
+        run: |
+          echo "=== Build failed. Displaying build log ==="
+          cat build/build.log || echo "No build log found"
